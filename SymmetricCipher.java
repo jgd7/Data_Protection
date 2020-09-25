@@ -41,6 +41,11 @@ public class SymmetricCipher {
 		byte[] input_with_padding = new byte[input_with_padding_size];
 		System.arraycopy(input, 0, input_with_padding, 0, input.length);
 
+		for (int i = 0; i < 16; i++){
+		    input_with_padding[i] ^= iv[i];
+		  }
+
+
 		// Generate the ciphertext
 		for (int i = 1; i < n_blocks; i++) {
 			byte[] block = Arrays.copyOfRange(input_with_padding, i, i*16);
@@ -68,12 +73,9 @@ public class SymmetricCipher {
 
 		for (int i = 1; i < n_blocks; i++) {
 			byte[] block = Arrays.copyOfRange(input, i, i*16);
-			byte[] m_decrypted = d.decryptBlock(block);
 		}
 
 		// Eliminate the padding
-		
-		finalplaintext = m_decrypted
 
 		return finalplaintext;
 
