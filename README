@@ -1,0 +1,10 @@
+// SECTION 1: symmetric encryption library
+
+The folder contains:
+	- SymmetricEncription.java: class provided
+	- SymmetricEncription.class
+	- SymmetricCipher.java: class completed with the implementation of the aforementioned functionalities.
+	- SymmetricCipher.class
+	- TestSymmetricCipher.java : Main testing the encryption and decryption implementations.
+
+To test the implementation use TestSymmetricCipher.java specifying txt to be read and symmetric key as arguments.

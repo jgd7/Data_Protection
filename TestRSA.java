@@ -50,7 +50,7 @@ public class Test_RSA{
 			publicKey = KeyFactory.getInstance("RSA").generatePublic(publicKeySpec);
 
 			// Encrypt message
-			String input = "JAVIER";
+			String input = "Ana es una freak";
 			byte[] message = input.getBytes();
 
 			byte[] ciphertext = r.encrypt(message, publicKey);
@@ -69,12 +69,6 @@ public class Test_RSA{
 			privateKey = KeyFactory.getInstance("RSA").generatePrivate(privateKeySpec);
 			String plaintext = new String(r.decrypt(ciphertext, privateKey));
 			System.out.println(plaintext);
-
-
-
-
-			
-
 
 
 
