@@ -56,21 +56,38 @@ public class SymmetricCipher {
 		s = new SymmetricEncryption(byteKey);
 		outputStream = new ByteArrayOutputStream();
 
+		String padding;
+		byte[] paddingBytes;
+		byte[] inputWithPadding;
+
 		numberOfBlocks = (int) Math.ceil(input.length / 16.0);
 		int messageSize =  numberOfBlocks * BLOCK_SIZE ;
 
 		// Generate the plaintext with padding
 		int paddingSize =  messageSize - input.length;
-		String padding = Integer.toHexString(paddingSize);
-		byte[] paddingBytes = padding.getBytes();
 
-		byte[] inputWithPadding = new byte[messageSize];
-		System.arraycopy(input, 0, inputWithPadding, 0, input.length);
-		
-		for(int z = 0; z < paddingSize; z++){
-			System.arraycopy(paddingBytes, 0, inputWithPadding, input.length + z, paddingBytes.length);
+		// If the message size is multiple of the BLOCK_SIZE,
+		// a block is added.
+		if(paddingSize == 0){
+			paddingBytes = new byte[] {(byte) BLOCK_SIZE};
+			messageSize += BLOCK_SIZE;
+			numberOfBlocks += 1;
+			inputWithPadding = new byte[messageSize];
+			System.arraycopy(input, 0, inputWithPadding, 0, input.length);
+
+			for(int z = 0; z < BLOCK_SIZE; z++){
+				System.arraycopy(paddingBytes, 0, inputWithPadding, input.length + z, paddingBytes.length);	
+			}
+
+		}else{
+			paddingBytes = new byte[] {(byte) paddingSize};
+			inputWithPadding = new byte[messageSize];
+			System.arraycopy(input, 0, inputWithPadding, 0, input.length);
+			for(int z = 0; z < paddingSize; z++){
+				System.arraycopy(paddingBytes, 0, inputWithPadding, input.length + z, paddingBytes.length);
+			}
 		}
-
+	
 		// Generate the ciphertext
 		for (int i = 0; i < numberOfBlocks; i++) {
 			block = Arrays.copyOfRange(inputWithPadding, i * BLOCK_SIZE, (i * BLOCK_SIZE) + BLOCK_SIZE);
@@ -117,7 +134,7 @@ public class SymmetricCipher {
         		finalplaintext: decrypted message
     	*/
 	
-		byte [] finalplaintext = null;
+		byte[] finalplaintext = null;
 		byte[] blockDecrypted = new byte[BLOCK_SIZE];
 		byte[] blockPrevious = new byte[BLOCK_SIZE];
 
@@ -149,15 +166,11 @@ public class SymmetricCipher {
 		}
 
 		// Eliminate the padding
-		byte[] padding = Arrays.copyOfRange(blockDecrypted, blockDecrypted.length -1, blockDecrypted.length);
-		int paddingSize = Integer.parseInt(new String(padding),16);
-
 		finalplaintext = outputStream.toByteArray();
 
-		// Check if padding is needed
-		if(paddingSize == 16 - ((input.length - paddingSize) % 16)){
-			finalplaintext = Arrays.copyOfRange(finalplaintext, 0, finalplaintext.length - paddingSize);
-		}
+		// Extract padding from the last byte and remove the padding
+		byte[] padding = Arrays.copyOfRange(blockDecrypted, blockDecrypted.length -1, blockDecrypted.length);
+		finalplaintext = Arrays.copyOfRange(finalplaintext, 0, finalplaintext.length - padding[0]);
 
 		return finalplaintext;	
 		
