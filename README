@@ -1,10 +1,8 @@
-// SECTION 1: symmetric encryption library
+// SECTION 2: RSA library
 
 The folder contains:
-	- SymmetricEncription.java: class provided
-	- SymmetricEncription.class
-	- SymmetricCipher.java: class completed with the implementation of the aforementioned functionalities.
-	- SymmetricCipher.class
-	- TestSymmetricCipher.java : Main testing the encryption and decryption implementations.
+	- RSALibrary.java: class completed with the implementation of the aforementioned functionalities.
+	- RSALibrary.class
+	- TestRSA.java : Main testing the Encryption, Decryption, Sign and Verification implementations.
 
-To test the implementation use TestSymmetricCipher.java specifying txt to be read and symmetric key as arguments.
+To test the implementation, use TestRSA.java specifying the plaintext as argument. The plaintext cannot be longer than the RSA key (1024 bits).

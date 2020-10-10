@@ -59,7 +59,7 @@ public class RSALibrary {
       keyfos.close();
 	
 
-	} catch (NoSuchAlgorithmException e) {
+	}catch (NoSuchAlgorithmException e) {
 		System.out.println("Exception: " + e.getMessage());
 		System.exit(-1);
 	}catch (FileNotFoundException e) {
