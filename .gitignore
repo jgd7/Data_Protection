@@ -4,3 +4,9 @@ public.key
 *.class
 test0.dec
 test0.enc
+pom.xml
+PW3.iml
+/out
+/target
+.idea
+
