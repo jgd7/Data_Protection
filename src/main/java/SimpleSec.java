@@ -9,8 +9,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Scanner;
-import java.util.concurrent.PriorityBlockingQueue;
-
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -27,11 +25,19 @@ public class SimpleSec{
 	static FileInputStream keyfin;
   	static FileOutputStream keyfout;
   	static FileWriter fileout;
-  	static FileReader filein;
   	static File file;
 
     public static void main(String args[]){
-    	
+    	/* Execution of the different functionalities of the SimpleSec
+
+    		Args:
+        		args[0] (str): option to be used.
+        		args[1] (str): source file if applicable
+        		args[2] (str): destination file if applicable
+    		Output:
+        		Call to the different functions depending on the command
+    	*/
+
     	if (args[0].equals("-g")){
     		generateAllKeys();
     	}
@@ -47,8 +53,12 @@ public class SimpleSec{
     }
 
     public static void generateAllKeys(){
-    	/*
-    	/////////////////////
+    	/* Generate public and private key and encrypt private key
+           using AES/CBC
+
+    		Args: null
+    		Output:
+        		Create public.key and private.key
     	*/
         
         RSALibrary r;
@@ -59,7 +69,7 @@ public class SimpleSec{
     		// Init RSA class
 			r = new RSALibrary();
 
-			// Geneated public and private keys
+			// Generate public and private keys
 			r.generateKeys();
 
 			/*************************************************************************************/
@@ -74,7 +84,7 @@ public class SimpleSec{
 			// Enter passphrase and press Enter
 			byte[] passphrase = generatePassphrase();
 
-			// Encrypt privatekey
+			// Encrypt private key
 			s = new SymmetricCipher();
     		byte[] privateKeyEncrypted = s.encryptCBC(privateKey.getEncoded(), passphrase);
 
@@ -83,6 +93,8 @@ public class SimpleSec{
 			keyfout.write(privateKeyEncrypted);
 			keyfout.close();
 
+			System.out.println("Public and private keys has been generated");
+
 		}catch(Exception e){
 			System.out.println("Exception: " + e.getMessage());
 			System.exit(-1);
@@ -90,6 +102,14 @@ public class SimpleSec{
 	}
 		
 	public static void encryption(String sourceFile, String destinationFile){
+    	/* Encrypt sourceFile, create and encrypt session key and generate signature.
+
+    		Args:
+    			sourceFile (str): Name of the source file
+    			destinationFile (str): Name of the destination file
+    		Output:
+        		destinationFile: contains ciphertext, session key encrypted and signature
+    	*/
 
 		RSALibrary r;
 		PublicKey publicKey;
@@ -148,7 +168,7 @@ public class SimpleSec{
 			// Sign plaintext
 			byte[] plaintextSigned = r.sign(plaintext, privateKey);
 
-			// Generate destination file
+			// Generate destination file using JSON format
 			JSONObject object = new JSONObject();
 			object.put("Ciphertext", new String(ciphertext, CHARSET_NAME));
 			object.put("Sign", new String(plaintextSigned, CHARSET_NAME));
@@ -157,6 +177,7 @@ public class SimpleSec{
 			fileout = new FileWriter(destinationFile);
 			fileout.write(object.toJSONString());
 			fileout.close();
+			System.out.println(destinationFile + " has been generated");
 
 		}catch(Exception e){
 				System.out.println("Exception: " + e.getMessage());
@@ -165,6 +186,15 @@ public class SimpleSec{
 	}
 
 	public static void decryption(String sourceFile, String destinationFile){
+    	/* Decrypt sourceFile, session key and validate signature.
+
+    		Args:
+    			sourceFile (str): Name of the source file
+    			destinationFile (str): Name of the destination file
+    		Output:
+        		destinationFile: contains plaintext
+        		Signature verification message output
+    	*/
 
 		SymmetricCipher d;
 		RSALibrary r;
@@ -177,10 +207,10 @@ public class SimpleSec{
 
 		try{
 			/*************************************************************************************/
-			/* Decrypt sessionkey, ciphertext and verify signature
+			/* Decrypt session key, ciphertext and verify signature
 		    /*************************************************************************************/
 
-			// Read sourcefile
+			// Read source file
 			JSONParser parser = new JSONParser();
 
 			try {
@@ -203,12 +233,12 @@ public class SimpleSec{
 		    // Decrypt private key
 			privateKey = decrypt_private_key(PRIVATE_KEY_FILE, passphrase);
 
-			// Decrypt sessionkey using the privatekey
+			// Decrypt session key using the private key
 			r = new RSALibrary();
 			byte[] sessionKey = r.decrypt(sessionKeyEncrypted, privateKey);
 
+			// Decrypt the ciphertext using the session key
 			d = new SymmetricCipher();
-			// Decrypt the ciphertext using the sessionkey
 		    byte[] ciphertextDecrypted = d.decryptCBC(ciphertext, sessionKey);
 
 		    // Read public key
@@ -218,9 +248,12 @@ public class SimpleSec{
 		    boolean verification = r.verify(ciphertextDecrypted, sign, publicKey);
 
 		    if(verification == true){
+				System.out.println("Signature is verified");
+				// Generate destination file
 				fileout = new FileWriter(destinationFile);
 				fileout.write(new String(ciphertextDecrypted));
 				fileout.close();
+				System.out.println(destinationFile + " has been created");
 
 			}else{
 				System.out.println("Signature cannot be verified");
@@ -235,14 +268,26 @@ public class SimpleSec{
 	}
 
 	public static byte[] generatePassphrase(){
+		/* Read passphrase from user input.
 
-		Scanner myObj = new Scanner(System.in);
-		System.out.println("Enter your passphrase:");
+    		Args: null
+    		Output:
+        		passphrase (bytes): contains user passphrase input
+    	*/
+		Scanner userInput = new Scanner(System.in);
+		System.out.println("Enter your passphrase (16 bytes):");
 
-		return (myObj.nextLine()).getBytes();
+		return (userInput.nextLine()).getBytes();
 	}
 
 	public static PublicKey read_public_key(String public_key_file) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+    	/* Read public key from a file.
+
+    		Args:
+    			public_key_file (str): name of the public.key
+    		Output:
+        		publickey (PublicKey): RSA public key
+    	*/
 
 		byte[] byteKey = read_key(public_key_file);
 		EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(byteKey);
@@ -252,8 +297,18 @@ public class SimpleSec{
 	}
 
 	public static PrivateKey decrypt_private_key(String private_key_file, byte[] passphrase) throws Exception {
+    	/* Read and decrypt a private key using user inputs (passphrase).
+
+    		Args:
+    			private_key_file (str): name of the private.key
+    			passphrase (str): user input
+    		Output:
+        		privateKey (PrivateKey): RSA private key
+    	*/
 
 		byte[] byteKey = read_key(private_key_file);
+
+		// Decrypt private key using passphrase
 		SymmetricCipher d = new SymmetricCipher();
 		byte[] privateKeyBytes = d.decryptCBC(byteKey, passphrase);
 		EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(privateKeyBytes);
@@ -263,6 +318,13 @@ public class SimpleSec{
 	}
 
 	public static byte[] read_key(String key_file) throws IOException {
+    	/* Read file.
+
+    		Args:
+    			key_file (str): name of the file
+    		Output:
+        		bytekey (bytes): file read bytes
+    	*/
 
 		file = new File(key_file);
 		byte[] byteKey  = new byte[(int)file.length()];
